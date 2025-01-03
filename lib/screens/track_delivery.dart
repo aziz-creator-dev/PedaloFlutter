@@ -1,210 +1,175 @@
 import 'package:flutter/material.dart';
+import 'package:projet_pfe/services/api_service.dart'; 
+import 'package:projet_pfe/models/order.dart'; 
 
-class TrackDelivery extends StatefulWidget {
+class TrackDeliveryScreen extends StatefulWidget {
+  final int orderId;
+
+  TrackDeliveryScreen({required this.orderId});
+
   @override
-  _TrackDeliveryState createState() => _TrackDeliveryState();
+  _TrackDeliveryScreenState createState() => _TrackDeliveryScreenState();
 }
 
-class _TrackDeliveryState extends State<TrackDelivery> {
-  int currentPoint = 2; // Assuming we are at the second point
+class _TrackDeliveryScreenState extends State<TrackDeliveryScreen> {
+  late Future<Order> _order;
+  
+  @override
+  void initState() {
+    super.initState();
+    ApiService apiService = ApiService();
+    _order = apiService.getOrderById(widget.orderId); // Corrected the call to apiService
+  }
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: screenWidth,
-              height: screenHeight,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(0.00, -1.00),
-                  end: Alignment(0, 1),
-                  colors: [Color(0xFFD7433C), Color(0xFFDD5E58), Colors.white],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    child: Container(
-                      width: screenWidth,
-                      height: screenHeight * 0.25,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.00, 1.00),
-                          end: Alignment(0, -1),
-                          colors: [Colors.white, Color(0xFFD7433C)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 60,
-                    left: MediaQuery.of(context).size.width * 0.01,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Track Delivery',
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.5,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 10.0,
-                                color: Colors.black.withOpacity(0.5),
-                                offset: Offset(4, 4),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    top: screenHeight * 0.15,
-                    child: Container(
-                      width: screenWidth,
-                      height: screenHeight * 0.85,
-                      decoration: ShapeDecoration(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Track Delivery',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFD7433C), Color(0xFFDD5E58), Colors.white],
+          ),
+        ),
+        child: FutureBuilder<Order>(
+          future: _order,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData) {
+              return Center(child: Text('Order not found.'));
+            } else {
+              Order order = snapshot.data!;
+
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Order ID Display
+                    Text(
+                      'Order ID: ${order.id}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.only(topLeft: Radius.circular(48)),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 30),
-                            Text(
-                              'Delivery Progress:',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 50),
-                            _buildDeliveryTrack(),
-                            SizedBox(height: 20),
-                            
-                          ],
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 20),
+
+                    _buildStatusTrack(order.status ?? 'Pending'),
+                    SizedBox(height: 40),
+
+                    _buildOrderDetails(order),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusTrack(String status) {
+    List<String> statuses = ['Pending', 'In Transit', 'Delivered'];
+    int currentStatusIndex = statuses.indexOf(status);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: statuses.map((statusText) {
+        int statusIndex = statuses.indexOf(statusText);
+        Color statusColor;
+        Icon statusIcon;
+
+        if (statusIndex <= currentStatusIndex) {
+          statusColor = Colors.green;
+          statusIcon = Icon(Icons.check_circle, color: statusColor);
+        } else {
+          statusColor = Colors.grey;
+          statusIcon = Icon(Icons.radio_button_unchecked, color: statusColor);
+        }
+
+        return Column(
+          children: [
+            statusIcon,
+            SizedBox(height: 8),
+            Text(
+              statusText,
+              style: TextStyle(
+                color: statusColor,
+                fontWeight: FontWeight.bold,
               ),
             ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildOrderDetails(Order order) {
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Order Details',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
+            _buildDetailRow('From:', order.pickupAddress ?? 'Tunis'),
+            _buildDetailRow('To:', order.deliveryAddress ?? 'Ariana'),
+            _buildDetailRow('Total Price:', '20 TND'),
+            SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDeliveryTrack() {
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          height: 6,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(5),
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text(
+            '$label ',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          child: Row(
-            children: [
-              _buildPoint(0),
-              _buildProgressLine(0),
-              _buildPoint(1),
-              _buildProgressLine(1),
-              _buildPoint(2),
-              _buildProgressLine(2),
-              _buildPoint(3),
-            ],
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.white70,
+            ),
           ),
-        ),
-        SizedBox(height: 20),
-      ],
-    );
-  }
-Widget _buildPoint(int index) {
-  // Ensure non-null color assignment
-  Color pointColor = index <= currentPoint ? Colors.green : (Colors.grey[300] ?? Colors.transparent);
-
-  return Expanded(
-    child: Column(
-      children: [
-        AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: pointColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: pointColor, width: 2),
-          ),
-        ),
-        SizedBox(height: 10),
-        Text(
-          _getPointLabel(index),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: pointColor,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildProgressLine(int index) {
-  // Ensure non-nullable color assignment
-  Color lineColor = index < currentPoint ? Colors.green : (Colors.grey[300] ?? Colors.grey); // Default to Colors.grey
-  return Expanded(
-    child: Container(
-      height: 6,
-      decoration: BoxDecoration(
-        color: lineColor,
-        borderRadius: BorderRadius.circular(3),
+        ],
       ),
-    ),
-  );
-}
-
-  String _getPointLabel(int index) {
-    switch (index) {
-      case 0:
-        return 'Order Placed';
-      case 1:
-        return 'Picked Up';
-      case 2:
-        return 'In Transit';
-      case 3:
-        return 'Delivered';
-      default:
-        return '';
-    }
+    );
   }
 }

@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:projet_pfe/screens/add_adresse.dart';
 
 class AddDeliveryDetails extends StatelessWidget {
+  final int courierId;
+
+  AddDeliveryDetails({required this.courierId});
   @override
   Widget build(BuildContext context) {
+    DateTime pickedDate = DateTime.now();
+
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-
+    print(courierId);
     return Scaffold(
       body: Column(
         children: [
@@ -74,7 +79,7 @@ class AddDeliveryDetails extends StatelessWidget {
                   top: screenHeight * 0.15,
                   child: Container(
                     width: screenWidth,
-                    height: screenHeight * 0.85, 
+                    height: screenHeight * 0.85,
                     decoration: ShapeDecoration(
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
@@ -159,14 +164,21 @@ class AddDeliveryDetails extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Expanded(child: Container()), // This pushes the button to the bottom
+                          Expanded(
+                              child:
+                                  Container()), // This pushes the button to the bottom
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => AddAddress()),
-                              ); // Verification logic here
+                                    builder: (context) => AddAddress(
+                                          courierId: courierId,
+                                          type:
+                                              "Standard", 
+                                          date: pickedDate,
+                                        )),
+                              ); 
                             },
                             style: ElevatedButton.styleFrom(
                               primary: Colors.transparent,
@@ -184,7 +196,10 @@ class AddDeliveryDetails extends StatelessWidget {
                                 gradient: LinearGradient(
                                   begin: Alignment(0.00, 1.00),
                                   end: Alignment(0, -1),
-                                  colors: [Color(0xFFF5962A), Color(0xFFD7433C)],
+                                  colors: [
+                                    Color(0xFFF5962A),
+                                    Color(0xFFD7433C)
+                                  ],
                                 ),
                                 borderRadius: BorderRadius.circular(30),
                               ),

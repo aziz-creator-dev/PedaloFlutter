@@ -1,6 +1,43 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class Sidebar extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:projet_pfe/screens/client_history.dart';
+import 'package:projet_pfe/screens/main_screen_1.dart';
+import 'package:projet_pfe/screens/feedback.dart'; // Import the feedback screen
+import 'package:projet_pfe/screens/settings.dart'; // Import the settings screen
+import 'package:shared_preferences/shared_preferences.dart';
+
+class Sidebar extends StatefulWidget {
+  @override
+  _SidebarState createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userDataString = prefs.getString('userData');
+    if (userDataString != null) {
+      try {
+        Map<String, dynamic> userData = jsonDecode(userDataString);
+        setState(() {
+          _userName = userData['name'] ?? 'User';
+        });
+      } catch (e) {
+        print('Error fetching user data: $e');
+      }
+    } else {
+      print('User data not found in SharedPreferences');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -22,17 +59,17 @@ class Sidebar extends StatelessWidget {
           top: 110, // Center vertically
           left: MediaQuery.of(context).size.width * 0.1, // Add left padding
           child: Text(
-            'John Doe',
+            _userName,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: const Color.fromARGB(255, 0, 0, 0),
-              letterSpacing: 1.5, 
+              letterSpacing: 1.5,
               shadows: [
                 Shadow(
                   blurRadius: 10.0,
                   color: Colors.black.withOpacity(0.5),
-                  offset: Offset(4, 4), 
+                  offset: Offset(4, 4),
                 ),
               ],
             ),
@@ -53,11 +90,16 @@ class Sidebar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 50),
-                _buildMenuItem('My History', Icons.history),
-                _buildMenuItem('Feedback', Icons.feedback),
+                _buildMenuItem('My History', Icons.history, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ClientHistory()),
+                  );
+                }),
+                _buildMenuItem('Feedback', Icons.feedback, navigateToFeedback),
                 _buildMenuItem('Invite Friends', Icons.person_add_alt_1),
                 _buildMenuItem('Support', Icons.support_agent),
-                _buildMenuItem('Settings', Icons.settings),
+                _buildMenuItem('Settings', Icons.settings, navigateToSettings),
                 Spacer(),
                 ListTile(
                   leading: Icon(Icons.logout, color: Color(0xFF3D003E)),
@@ -69,7 +111,15 @@ class Sidebar extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                  onTap: () {},
+                  onTap: () async {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    await prefs.clear();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainScreen1()),
+                    );
+                  },
                 ),
               ],
             ),
@@ -79,7 +129,25 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(String title, IconData icon) {
+  void navigateToFeedback() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              FeedbackScreen()), // Navigate to the FeedbackScreen
+    );
+  }
+
+  void navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              SettingsScreen()), // Navigate to the SettingsScreen
+    );
+  }
+
+  Widget _buildMenuItem(String title, IconData icon, [Function? onTap]) {
     return ListTile(
       leading: Icon(icon, color: Color(0xFF3D003E)),
       title: Text(
@@ -90,7 +158,7 @@ class Sidebar extends StatelessWidget {
           fontWeight: FontWeight.w400,
         ),
       ),
-      onTap: () {},
+      onTap: onTap as void Function()?,
     );
   }
 }

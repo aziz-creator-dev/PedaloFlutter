@@ -2,37 +2,42 @@ class Courier {
   final int id;
   final String? name;
   final String? email;
-  final String? status;
-  final String tel;
+  final String? tel;
+  final String? cin;
+  final String? licence;
+  final String? type;
 
-  // Constructor
   Courier({
     required this.id,
     this.name,
     this.email,
-    this.status,
-    required this.tel,
+    this.tel,
+    this.cin,
+    this.licence,
+    this.type,
   });
 
-  // Factory constructor to create a Courier instance from JSON
   factory Courier.fromJson(Map<String, dynamic> json) {
     return Courier(
-      id: json['id'],
-      name: json['name'], // nullable
-      email: json['email'], // nullable
-      status: json['status'], // nullable
-      tel: json['tel'],
+      id: json['id'] ?? 0,
+      name: json['name'],
+      email: json['email'],
+      tel: json['tel'] ?? '',
+      cin: json['cin'],
+      licence: json['licence'],
+      type: json['type'],
     );
   }
 
-  // Method to convert Courier instance into a JSON map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name, // nullable
-      'email': email, // nullable
-      'status': status, // nullable
+      'name': name,
+      'email': email,
       'tel': tel,
+      'cin': cin,
+      'licence': licence,
+      'type': type,
     };
   }
 }

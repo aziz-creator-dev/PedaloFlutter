@@ -1,33 +1,30 @@
 class Client {
   final int id;
-  final String? name; // Nullable field
-  final String? email; // Nullable field
+  final String? name;
+  final String? email;
   final String tel;
 
-  // Constructor
   Client({
     required this.id,
-    this.name, // Nullable field
-    this.email, // Nullable field
+    this.name,
+    this.email,
     required this.tel,
   });
 
-  // Factory constructor to create a Client instance from JSON
   factory Client.fromJson(Map<String, dynamic> json) {
     return Client(
-      id: json['id'],
-      name: json['name'], // Nullable
-      email: json['email'], // Nullable
-      tel: json['tel'],
+      id: json['id'] ?? 0,  
+      name: json['name'],    
+      email: json['email'],  
+      tel: json['tel'] ?? '', 
     );
   }
 
-  // Method to convert Client instance into a JSON map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name, // Nullable
-      'email': email, // Nullable
+      'name': name,
+      'email': email,
       'tel': tel,
     };
   }

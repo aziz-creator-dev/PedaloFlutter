@@ -1,21 +1,56 @@
-// Import necessary packages
-import 'package:flutter/material.dart';
-import 'package:projet_pfe/screens/add_delivery_details.dart';
-import 'sidebar_client.dart'; // Import Sidebar widget
+import 'dart:convert';
 
-class ClientHome extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:projet_pfe/services/api_service.dart';
+import 'package:projet_pfe/screens/add_delivery_details.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/courier.dart';
+import 'sidebar_client.dart';
+
+class ClientHome extends StatefulWidget {
+  @override
+  _ClientHomeState createState() => _ClientHomeState();
+}
+
+class _ClientHomeState extends State<ClientHome> {
+  late Future<List<Courier>> _couriers;
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _couriers = ApiService().getCouriers();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userDataString = prefs.getString('userData');
+    if (userDataString != null) {
+      try {
+        Map<String, dynamic> userData = jsonDecode(userDataString);
+        setState(() {
+          _userName = userData['name'] ?? 'User';
+        });
+      } catch (e) {
+        print('Error fetching user data: $e');
+      }
+    } else {
+      print('User data not found in SharedPreferences');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
       drawer: Drawer(
-        child: Sidebar(), // Sidebar integration
+        child: Sidebar(),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Background container with gradient
             Container(
               width: size.width,
               height: size.height,
@@ -28,7 +63,6 @@ class ClientHome extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // Top Row with Icon and Search Bar
                   Positioned(
                     left: 20,
                     right: 20,
@@ -53,7 +87,8 @@ class ClientHome extends StatelessWidget {
                               decoration: InputDecoration(
                                 hintText: 'Search...',
                                 hintStyle: TextStyle(color: Colors.white),
-                                prefixIcon: Icon(Icons.search, color: Colors.white),
+                                prefixIcon:
+                                    Icon(Icons.search, color: Colors.white),
                                 filled: true,
                                 fillColor: Colors.black.withOpacity(0.2),
                                 border: OutlineInputBorder(
@@ -67,14 +102,11 @@ class ClientHome extends StatelessWidget {
                         ),
                         IconButton(
                           icon: Icon(Icons.notifications, color: Colors.white),
-                          onPressed: () {
-                            // Handle notifications click
-                          },
+                          onPressed: () {},
                         ),
                       ],
                     ),
                   ),
-                  // Additional content
                   Positioned(
                     left: size.width * 0.1,
                     top: size.height * 0.3,
@@ -82,7 +114,7 @@ class ClientHome extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello John,',
+                          'Hello ' + _userName,
                           style: TextStyle(
                             color: Color(0xFF3D003E),
                             fontSize: size.width * 0.08,
@@ -99,66 +131,55 @@ class ClientHome extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // User Profile Picture
                   Positioned(
                     left: size.width * 0.05,
                     top: size.height * 0.17,
                     child: CircleAvatar(
                       radius: size.width * 0.1,
-                      backgroundImage:
-                          NetworkImage("https://via.placeholder.com/91x91"),
+                      backgroundImage: AssetImage("assets/images/man.png"),
                     ),
                   ),
-
-                  // Cards Section
                   Positioned(
-                    top: size.height * 0.6,
+                    top: size.height * 0.67,
                     left: 20,
                     right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Near You',
-                              style: TextStyle(
-                                fontSize: size.width * 0.05,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    child: FutureBuilder<List<Courier>>(
+                      future: _couriers,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Failed to load couriers: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                // Browse Map action
+                          );
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No couriers available',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          );
+                        } else {
+                          return SizedBox(
+                            height:
+                                size.height * 0.3, // Adjust height as needed
+                            child: ListView.builder(
+                              scrollDirection: Axis
+                                  .horizontal, // Enable horizontal scrolling
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                final courier = snapshot.data![index];
+                                return _buildCourierCard(size, courier);
                               },
-                              child: Text(
-                                'Browse Map',
-                                style: TextStyle(
-                                  fontSize: size.width * 0.04,
-                                  color: const Color.fromARGB(255, 255, 255, 255),
-                                ),
-                              ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        // Scrollable horizontal list of cards
-                        Container(
-                          height: size.height * 0.3,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 5, // Number of cards
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: _buildCard(size,context),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -170,9 +191,11 @@ class ClientHome extends StatelessWidget {
     );
   }
 
-   Widget _buildCard(Size size, BuildContext context) {
+  Widget _buildCourierCard(Size size, Courier courier) {
     return Container(
-      width: size.width * 0.8,
+      width: size.width * 0.7,
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -184,64 +207,54 @@ class ClientHome extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundImage:
-                      NetworkImage("https://via.placeholder.com/91x91"),
-                ),
-                SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Michael Lucas',
-                      style: TextStyle(
-                        fontSize: size.width * 0.045,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Biker Available',
-                      style: TextStyle(
-                        fontSize: size.width * 0.035,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (courier.type == 'Electric bike')
+            Image.asset(
+              'assets/images/bike (3).png',
+              width: 24,
+              height: 24,
+            )
+          else if (courier.type == 'Non-electric bike')
+            Image.asset(
+              'assets/images/bike.png',
+              width: 24,
+              height: 24,
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the AddDeliveryDetails screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddDeliveryDetails(), // Change this to your actual screen
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                primary: Color(0xFFF5962A),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+          Text(
+            courier.name ?? 'Unknown Name',
+            style: TextStyle(
+                fontSize: size.width * 0.05, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            courier.tel ?? 'No phone number',
+            style: TextStyle(fontSize: size.width * 0.04, color: Colors.grey),
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AddDeliveryDetails(courierId: courier.id),
                 ),
-              ),
-              child: Text(
-                'Deliver Package',
-                style: TextStyle(color: Colors.white),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              primary: Color(0xFFF5962A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
-          ],
-        ),
+            child: Text(
+              'Deliver Package',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }

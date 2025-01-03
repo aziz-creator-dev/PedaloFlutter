@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projet_pfe/screens/get_started.dart';
+import 'package:projet_pfe/screens/login.dart';
 
 class MainScreen1 extends StatelessWidget {
   @override
@@ -38,7 +39,7 @@ class MainScreen1 extends StatelessWidget {
               // Get Started Button
               Positioned(
                 left: screenWidth * 0.1,
-                top: screenHeight * 0.65, 
+                top: screenHeight * 0.65,
                 child: SizedBox(
                   width: screenWidth * 0.8,
                   height: screenHeight * 0.08,
@@ -52,8 +53,7 @@ class MainScreen1 extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       primary: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(20), 
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     child: Text(
@@ -71,8 +71,7 @@ class MainScreen1 extends StatelessWidget {
 
               Positioned(
                 left: screenWidth * 0.23,
-                top: screenHeight *
-                    0.77, 
+                top: screenHeight * 0.77,
                 child: Text(
                   'Already have an account?',
                   style: TextStyle(
@@ -87,14 +86,24 @@ class MainScreen1 extends StatelessWidget {
               Positioned(
                 left: screenWidth * 0.67,
                 top: screenHeight * 0.77,
-                child: Text(
-                  'Log in',
-                  style: TextStyle(
-                    color: Color(0xFF3D003E),
-                    fontSize: screenWidth * 0.035,
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.none,
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate to another screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Login(isLogin: true,role: 'client')),
+                    );
+                  },
+                  child: Text(
+                    'Log in',
+                    style: TextStyle(
+                      color: Color(0xFF3D003E),
+                      fontSize: screenWidth * 0.035,
+                      fontFamily: 'Montserrat',
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.none,
+                    ),
                   ),
                 ),
               ),

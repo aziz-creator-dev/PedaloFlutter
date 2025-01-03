@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projet_pfe/screens/client_main.dart';
-import 'package:projet_pfe/screens/raider_main.dart';
+import 'package:projet_pfe/screens/rider_main.dart';
 
 class GetStarted extends StatelessWidget {
   @override

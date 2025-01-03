@@ -1,26 +1,24 @@
 class Order {
-  final int id;
-  final int clientId;
-  final int courierId;
-  final String pickupAddress;
-  final String deliveryAddress;
-  final String status;
-  final String date;
-  final String type;
+  final int? id;
+  final int? clientId;
+  final int? courierId;
+  final String? pickupAddress;
+  final String? deliveryAddress;
+  final String? status;
+  final DateTime? date;
+  final String? type;
 
-  // Constructor
   Order({
-    required this.id,
-    required this.clientId,
-    required this.courierId,
-    required this.pickupAddress,
-    required this.deliveryAddress,
-    required this.status,
-    required this.date,
-    required this.type,
+    this.id,
+    this.clientId,
+    this.courierId,
+    this.pickupAddress,
+    this.deliveryAddress,
+    this.status,
+    this.date,
+    this.type,
   });
 
-  // Factory constructor to create an Order instance from JSON
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
@@ -29,12 +27,11 @@ class Order {
       pickupAddress: json['pickup_address'],
       deliveryAddress: json['delivery_address'],
       status: json['status'],
-      date: json['date'],
+      date: json['date'] != null ? DateTime.parse(json['date']) : null,
       type: json['type'],
     );
   }
 
-  // Method to convert Order instance into a JSON map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -43,7 +40,7 @@ class Order {
       'pickup_address': pickupAddress,
       'delivery_address': deliveryAddress,
       'status': status,
-      'date': date,
+      'date': date?.toIso8601String(),
       'type': type,
     };
   }

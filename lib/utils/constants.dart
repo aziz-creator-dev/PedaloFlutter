@@ -2,11 +2,11 @@
 
 class Constants {
   // API Base URL
-  static const String apiBaseUrl = 'https://your-api-url.com/api';
+  static const String apiBaseUrl = 'http://192.168.1.12:3000/api';
 
   // Endpoints
   static const String clientsEndpoint = '/clients';
-  static const String couriersEndpoint = '/couriers';
+  static const String couriersEndpoint = '/courier';
   static const String ordersEndpoint = '/orders';
 
   // HTTP Status Codes

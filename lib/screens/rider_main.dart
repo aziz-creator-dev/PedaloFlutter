@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:projet_pfe/screens/login.dart';
 
-class ClientMain extends StatelessWidget {
+class RiderMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -29,7 +29,7 @@ class ClientMain extends StatelessWidget {
                     left: screenWidth * 0.42,
                     top: screenHeight * 0.46,
                     child: Text(
-                      'Client',
+                      'Ride',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF3D003E),
@@ -65,7 +65,7 @@ class ClientMain extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Login(isLogin: true,role: 'client')),
+                              builder: (context) => Login(isLogin: true,role: 'rider')),
                         );
                       },
                       child: Container(
@@ -99,7 +99,7 @@ class ClientMain extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Login(isLogin: false,role: 'client')),
+                              builder: (context) => Login(isLogin: false,role: 'rider')),
                         );
                       },
                       child: Container(
@@ -133,7 +133,7 @@ class ClientMain extends StatelessWidget {
                       height: screenHeight * 0.35,
                       decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: AssetImage("assets/images/Group 55.png"),
+                          image: AssetImage("assets/images/rider.png"),
                           fit: BoxFit.fill,
                         ),
                       ),
